@@ -98,30 +98,31 @@ inversion; one-way functions.
 A simple transition rule can describe a computation of enormous duration.
 How complicated can its final-state map be as a Boolean function of the
 initial state?  We study this question for a fixed map
-$F:\bits^n\to\bits^n$.  The computational resource is the total number of
-Boolean gates, rather than the number of evaluations of $F$, the number of
-memory probes, or the time of a random-access algorithm.
+$F:\bits^n\to\bits^n$ and investigate its circuit complexity: for a
+Boolean function $f$, let $\CC(f)$ be the least number of gates that an
+acyclic Boolean circuit needs to compute $f$, where each gate may compute
+an arbitrary Boolean function of its at most two inputs.
 
-Let $N=2^n$ and suppose that $F$ has a circuit of size $s$.  Directly
+Suppose that $F$ has a circuit of size $s$.  Directly
 unrolling $T$ applications gives a circuit of size at most $Ts$ for $F^T$.
 Alternatively, hardwiring a complete truth table and testing the input
-against all $N$ states gives an $O(nN)$-gate circuit, independently of $T$.
+against all $2^n$ states gives an $O(n2^n)$-gate circuit, independently of $T$.
 The latter bound ignores the possibility that $F$ itself is much simpler
 than an arbitrary map on its state space.  Our main result exploits that
 possibility.
 
 \begin{theorem}[Fixed-power tradeoff]\label{thm:main}
 Let $n\geq 1$, let $F:\bits^n\to\bits^n$ satisfy $\CC(F)\leq s$, and put
-$N=2^n$ and $A=s+n^3$.  For every integer $T\geq 0$ and every integer
-$1\leq L\leq N$,
+$A=s+n^3$.  For every integer $T\geq 0$ and every integer
+$1\leq L\leq 2^n$,
 \begin{equation}\label{eq:tradeoff}
   \CC(F^T)
-  =O\!\left(Ls+n^3\left(L+\frac{N}{L}\right)\right).
+  =O\!\left(Ls+n^3\left(L+\frac{2^n}{L}\right)\right).
 \end{equation}
 In particular,
 \begin{equation}\label{eq:optimized}
   \CC(F^T)
-  =O\!\left(A+\sqrt{n^3NA}\right).
+  =O\!\left(A+\sqrt{n^3 2^n A}\right).
 \end{equation}
 The implicit constants are absolute.  The circuit may depend on $F$ and
 $T$, but the size bound does not depend on the bit length of $T$.
@@ -147,7 +148,7 @@ For each fixed $F$ and $T$, the circuit works for every initial state.
 \subsection{Proof overview}
 
 The functional graph of $F$ consists of directed cycles with directed
-trees feeding into them.  For a parameter $L$, we select $O(N/L)$
+trees feeding into them.  For a parameter $L$, we select $O(2^n/L)$
 checkpoints so that every trajectory either encounters one within $2L$
 steps or repeats a state within that many steps.  A repeated state reveals
 a period and permits direct recovery of the answer from the initial
@@ -166,11 +167,11 @@ There is no inverse operation, so the argument applies to noninjective
 maps.
 
 A separate lookup for each of $\Theta(L)$ visited states against
-$\Theta(N/L)$ checkpoints would cost $\Theta(N)$ comparisons.  Instead,
+$\Theta(2^n/L)$ checkpoints would cost $\Theta(2^n)$ comparisons.  Instead,
 we generate the full initial trajectory before looking anything up and
 resolve all its queries together.  Sorting the queries and dictionary
 records reduces this cost to
-$\poly(n)(L+N/L)$ Boolean gates.  Combining the initial and final short
+$\poly(n)(L+2^n/L)$ Boolean gates.  Combining the initial and final short
 simulations with this batched lookup gives \cref{eq:tradeoff}.
 
 \paragraph{A worked example.}
@@ -200,7 +201,7 @@ order.  The hard powers are selected by counting, require exponentially
 long binary exponents, and are not explicitly identified.  The same
 permutation has a polynomial-size iterator for polynomial-width input times.
 
-Write $B=A+\sqrt{n^3NA}$.  The extensions in \cref{sec:variable,sec:batch}
+Write $B=A+\sqrt{n^3 2^n A}$.  The extensions in \cref{sec:variable,sec:batch}
 handle input exponents and shared evaluation.  The graph-query circuits
 in \cref{sec:structure} compute cycle labels, transient depth, reachability,
 first hitting times, visit descriptors, and synchronous coalescence in
@@ -208,7 +209,7 @@ $O(B)$ gates.  Pair queries take two $n$-bit states; their exponential
 scale remains $2^{n/2}$ for polynomial-size transitions.
 Recognizable targets include eventual membership and recurring or permanent
 acceptance.  For a predicate of size $a$, put $A_P=s+a+n^3$ and
-$B_P=A_P+\sqrt{n^3NA_P}$.
+$B_P=A_P+\sqrt{n^3 2^n A_P}$.
 
 \Cref{sec:structured} gives stronger bounds for autonomous controllers and
 sparse counter edits.  For the latter, an explicit edit list permits
@@ -245,7 +246,7 @@ Fixed iterate & $x$; fixed $T\geq0$ & $O(B)$ \\
 Input-time iterate & $x,t$; $t\in\bits^m$ & $O(\min\{mB,nB+nm\})$ \\
 Graph navigation & $x$ or $x,y$ & $O(B)$ \\
 Recognizable targets & $x$; fixed $P$ of size $a$ & $O(B_P)$ \\
-Shared fixed powers & $k$ states; common fixed $T$ & $O(kA+\sqrt{kn^3NA})$ \\
+Shared fixed powers & $k$ states; common fixed $T$ & $O(kA+\sqrt{k n^3 2^n A})$ \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{Autonomous $q$-bit controller and $p$-bit affine payload, $q+p=n$}}\\
 Fixed iterate & $u,v$; fixed $T\geq0$ & $O(2^q(q+p^2))$ \\
@@ -256,7 +257,7 @@ Input-time iterate & $x,t$; $t\in\bits^m$ & $O(n(r+m+1))$ \\
 \bottomrule
 \end{tabular}
 \caption{Circuit bounds for fixed transitions, with $m\geq1$ and
-$1\leq k\leq N$.  An $m$-bit input time multiplies the affine-controller
+$1\leq k\leq 2^n$.  An $m$-bit input time multiplies the affine-controller
 bound by $m$.  Visit descriptors specify all visits; additional
 deadline-processing circuits are not included.
 All listed bounds are formalized; \cref{sec:lean} records the checked boundary.}
@@ -271,7 +272,7 @@ example of this approach~\cite{Hellman80}.  More directly, Munro, Raman,
 Raman, and Rao~\cite[Section~3.1]{MRRR12} give a shortcut representation
 for permutation inversion: with a parameter $L$, their black-box
 construction uses $O(L)$ evaluations and
-$O((N/L)(\log N+\log L))$ auxiliary bits.  They also give succinct
+$O((2^n/L)(\log 2^n+\log L))$ auxiliary bits.  They also give succinct
 representations of general functions supporting positive powers with a
 word-size exponent~\cite[Section~5]{MRRR12}.  Those results concern
 representation space, RAM time, and black-box access, rather than total
@@ -296,7 +297,7 @@ to rigorous time--space tradeoffs for inverting arbitrary functions, in
 the random-access model; Hirahara, Ilango, and Williams implement their
 algorithm with circuits~\cite[Section~3.3]{HIW24}.  Lower bounds in this
 preprocessing model face a known barrier.  Corrigan-Gibbs and
-Kogan~\cite{CGK19} show that improving Yao's bound $ST=\widetilde\Omega(N)$
+Kogan~\cite{CGK19} show that improving Yao's bound $ST=\widetilde\Omega(2^n)$
 for inverting a random function with $S$ bits of advice and $T$ queries
 would give new lower bounds for depth-two circuits with arbitrary gates,
 and that strong lower bounds for nonadaptive inverters would give lower
