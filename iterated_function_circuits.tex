@@ -96,9 +96,8 @@ inversion; one-way functions.
 \section{Introduction}\label{sec:intro}
 
 A simple transition rule can describe a computation of enormous duration.
-How complicated can its final-state map be as a Boolean function of the
-initial state?  We study this question for a fixed map
-$F:\bits^n\to\bits^n$ and investigate its circuit complexity: for a
+How complicated can its iterations be? We study this question for a fixed map
+$F:\bits^n\to\bits^n$ and investigate the circuit complexity of its iterations: for a
 Boolean function $f$, let $\CC(f)$ be the least number of gates that an
 acyclic Boolean circuit needs to compute $f$, where each gate may compute
 an arbitrary Boolean function of its at most two inputs.
@@ -135,9 +134,9 @@ Circuit size refers to the whole multi-output circuit, not to a separate
 size bound for each output bit.
 
 \begin{corollary}\label[corollary]{cor:poly}
-If $\CC(F_n)=n^{O(1)}$, then
+For a family of functions $\{F_n\}_n$ such that $\CC(F_n)=n^{O(1)}$ and for all $T$
 \begin{equation}\label{eq:half}
-  \sup_{T\geq 0}\CC(F_n^T)\leq 2^{n/2+O(\log n)}.
+  \CC(F_n^T)\leq 2^{n/2+O(\log n)}.
 \end{equation}
 The constant hidden in $O(\log n)$ may depend on the polynomial bound for
 $\CC(F_n)$, but not on $T$.
@@ -147,22 +146,22 @@ For each fixed $F$ and $T$, the circuit works for every initial state.
 
 \subsection{Proof overview}
 
-The functional graph of $F$ consists of directed cycles with directed
+The functional graph of $F$ has $2^n$ nodes and consists of directed cycles with directed
 trees feeding into them.  For a parameter $L$, we select $O(2^n/L)$
 checkpoints so that every trajectory either encounters one within $2L$
 steps or repeats a state within that many steps.  A repeated state reveals
 a period and permits direct recovery of the answer from the initial
 trajectory.
 
-Set $K=2L$ and assume $T\geq K$.  At each checkpoint $h$, store
-$z_h=F^{T-K}(h)$.  If the initial trajectory encounters $h$ at time $d\leq K$,
-then
+Assume $T\geq 2L$.  At each checkpoint $h\in\{0,1\}^n$, store
+$z_h=F^{T-2L}(h)$.  If the initial trajectory on input $x$ encounters $h$ at time $d\leq 2L$,
+i.e.\ $F^d(x) = h$, then
 \begin{equation}\label{eq:overview-identity}
-  F^{K-d}(z_h)
-  =F^{K-d}\bigl(F^{T-K}(F^d(x))\bigr)
+  F^{2L-d}(z_h)
+  =F^{2L-d}\bigl(F^{T-2L}(F^d(x))\bigr)
   =F^T(x).
 \end{equation}
-Thus only a short \emph{forward} correction is needed after the lookup.
+Thus once a checkpoint is reached, only a short \emph{forward} correction is needed after the lookup.
 There is no inverse operation, so the argument applies to noninjective
 maps.
 
@@ -174,38 +173,20 @@ records reduces this cost to
 $\poly(n)(L+2^n/L)$ Boolean gates.  Combining the initial and final short
 simulations with this batched lookup gives \cref{eq:tradeoff}.
 
-\paragraph{A worked example.}
-Consider eight states, encoded by three bits, with transitions
-\[
-  0\to1\to2\to3\to4\to5\to2,
-  \qquad 6\to7\to6.
-\]
-Take $L=3$, $K=6$, and $H=\{2,5\}$, the endpoints of the disjoint
-three-vertex paths $(0,1,2)$ and $(3,4,5)$.  Fix $T=101$.
-Starting at $x=1$, the first checkpoint is $h=2$, reached at $d=1$.
-Its stored payload is $z_2=F^{95}(2)=5$, so the forward correction gives
-\[
-  F^{K-d}(z_2)=F^5(5)=2=F^{101}(1).
-\]
-Starting instead at $x=6$, the prefix $6,7,6$ repeats without meeting a
-checkpoint.  The repeated indices $i=0$, $j=2$ give period $p=2$.
-The answer is prefix entry $i+((101-i)\bmod p)=1$, namely $7$.
-Thus the two-cycle needs no dictionary entry.
-
 \subsection{Further results and sharpness}
 
-The exponent $1/2$ is sharp for arbitrary fixed powers.  In
-\cref{sec:lower}, an explicit linear-size permutation has almost all powers
-of complexity $\Omega(2^{n/2}/n)$, when the exponent is uniform modulo its
-order.  The hard powers are selected by counting, require exponentially
+The exponent $1/2$ is sharp for arbitrary fixed iteration counts.  In
+\cref{sec:lower}, we define an an explicit linear-size permutation such that
+almost all its iterations have complexity $\Omega(2^{n/2}/n)$, when the exponent is uniform modulo its
+order.  The hard iterations are selected by counting, require exponentially
 long binary exponents, and are not explicitly identified.  The same
 permutation has a polynomial-size iterator for polynomial-width input times.
 
-Write $B=A+\sqrt{n^3 2^n A}$.  The extensions in \cref{sec:variable,sec:batch}
-handle input exponents and shared evaluation.  The graph-query circuits
+The extensions in \cref{sec:variable,sec:batch}
+handle iteration counts as part of the input and shared evaluation.  The graph-query circuits
 in \cref{sec:structure} compute cycle labels, transient depth, reachability,
 first hitting times, visit descriptors, and synchronous coalescence in
-$O(B)$ gates.  Pair queries take two $n$-bit states; their exponential
+$O(A+\sqrt{n^3 2^n A})$ gates.  Pair queries take two $n$-bit states; their exponential
 scale remains $2^{n/2}$ for polynomial-size transitions.
 Recognizable targets include eventual membership and recurring or permanent
 acceptance.  For a predicate of size $a$, put $A_P=s+a+n^3$ and
@@ -482,21 +463,21 @@ computing those constants is asserted.
 
 \subsection{Short trajectories and shifted payloads}
 
-Fix $L$ and let $K=2L$.  If $T<K$, use $T$ copies of a circuit for $F$;
-this costs at most $2Ls$ gates.  Hence assume $T\geq K$.
+Fix $L$.  If $T<2L$, use $T$ copies of a circuit for $F$;
+this costs at most $2Ls$ gates.  Hence assume $T\geq 2L$.
 Choose $H$ as in \cref{lem:checkpoints}.  For every $h\in H$, hardwire the
 $n$-bit payload
 \begin{equation}\label{eq:payload}
-  z_h=F^{T-K}(h).
+  z_h=F^{T-2L}(h).
 \end{equation}
 The dictionary is fixed independently of the input $x$ and has at most
 $N/L$ entries.
 
 On input $x$, first compute
 \begin{equation}\label{eq:prefix}
-  x_0=x,\quad x_1=F(x),\quad\ldots,\quad x_K=F^K(x).
+  x_0=x,\quad x_1=F(x),\quad\ldots,\quad x_{2L}=F^{2L}(x).
 \end{equation}
-This requires $Ks$ gates.  Apply \cref{lem:lookup} to all $K+1$ states in
+This requires $2Ls$ gates.  Apply \cref{lem:lookup} to all $2L+1$ states in
 \cref{eq:prefix}, using the dictionary $h\mapsto z_h$.  Select one
 matching record, if any, and retain its original trajectory index $d$.
 This gives a match flag and a pair $(d,z_h)$ with $x_d=h$ whenever the
@@ -504,28 +485,28 @@ flag is one.
 
 For the matched case, compute a second short trajectory
 \[
-  z_h,F(z_h),\ldots,F^K(z_h)
+  z_h,F(z_h),\ldots,F^{2L}(z_h)
 \]
-and select its entry at position $K-d$.  Its value is
+and select its entry at position $2L-d$.  Its value is
 \begin{align}
-  F^{K-d}(z_h)
-    &=F^{K-d}\bigl(F^{T-K}(h)\bigr)\notag\\
+  F^{2L-d}(z_h)
+    &=F^{2L-d}\bigl(F^{T-2L}(h)\bigr)\notag\\
     &=F^{T-d}(h)\notag\\
     &=F^{T-d}\bigl(F^d(x)\bigr)
      =F^T(x).\label{eq:identity}
 \end{align}
 All exponents used here are nonnegative.  This second trajectory costs
-another $Ks$ gates; selection costs $O(nK)$ gates.
+another $2Ls$ gates; selection costs $O(n2L)$ gates.
 
 \subsection{The repeated-state case and very large exponents}
 
 Use \cref{lem:repeat} on \cref{eq:prefix}.  If no checkpoint was found,
 \cref{lem:checkpoints} guarantees indices
 \[
-  0\leq i<j\leq K,\qquad x_i=x_j.
+  0\leq i<j\leq 2L,\qquad x_i=x_j.
 \]
 Put $p=j-i$.  Determinism implies $x_{u+p}=x_u$ for all $u\geq i$.
-The number $p$ need not be the least period.  Since $T\geq K\geq i$,
+The number $p$ need not be the least period.  Since $T\geq 2L\geq i$,
 \begin{equation}\label{eq:period}
   F^T(x)=x_{\,i+((T-i)\bmod p)}.
 \end{equation}
@@ -535,17 +516,17 @@ occurs in the initial trajectory.
 To implement \cref{eq:period} without paying for the bit length of $T$,
 hardwire the table
 \begin{equation}\label{eq:residue-table}
-  R_T(p)=T\bmod p,\qquad 1\leq p\leq K.
+  R_T(p)=T\bmod p,\qquad 1\leq p\leq 2L.
 \end{equation}
-There are $K$ entries, each of $O(n)$ bits.  A multiplexer tree retrieves
-$R_T(p)$ in $O(nK)$ gates.  Compute $i\bmod p$ by binary long division
+There are $2L$ entries, each of $O(n)$ bits.  A multiplexer tree retrieves
+$R_T(p)$ in $O(n2L)$ gates.  Compute $i\bmod p$ by binary long division
 and then compute
 \[
   (T-i)\bmod p
     =\bigl(R_T(p)-(i\bmod p)\bigr)\bmod p
 \]
 using a comparison, subtraction, and a conditional addition of $p$.
-These operations take $O(n^2)$ gates.  A further $O(nK)$ gates select the
+These operations take $O(n^2)$ gates.  A further $O(n2L)$ gates select the
 state prescribed in \cref{eq:period}.
 
 A circuit evaluates both branches, so all intermediate operations must
@@ -559,10 +540,10 @@ In particular, no division by zero occurs on any input.
 
 \subsection{Size bound}
 
-The two simulations together use at most $2Ks=4Ls$ gates.  The dictionary
+The two simulations together use at most $4Ls$ gates.  The dictionary
 and query list contain
 \[
-  |H|+(K+1)=O\!\left(\frac{N}{L}+L\right)
+  |H|+(2L+1)=O\!\left(\frac{N}{L}+L\right)
 \]
 records of $O(n)$ bits, and the logarithm of this number is $O(n)$.
 Thus \cref{lem:lookup} costs
@@ -588,7 +569,7 @@ This establishes
 \hfill$\square$
 
 \begin{remark}[Where the exponent is stored]\label[remark]{rem:nonuniform}
-For $T\geq K$, the information about $T$ used by the circuit is confined
+For $T\geq 2L$, the information about $T$ used by the circuit is confined
 to the checkpoint payloads in \cref{eq:payload} and the residue table in
 \cref{eq:residue-table}.  Their total length is
 $O(n(N/L+L))$ bits.  The construction does not place the binary expansion
@@ -2838,12 +2819,12 @@ Consequently,
 \end{theorem}
 
 \begin{proof}
-Set $K=2L$.  If $T<K$, unroll $T$ copies of $F$ independently for each
+If $T<2L$, unroll $T$ copies of $F$ independently for each
 input.  Otherwise use the checkpoint set and dictionary from
-\cref{sec:fixed}.  Generate the first $K+1$ states of all $r$ trajectories.
+\cref{sec:fixed}.  Generate the first $2L+1$ states of all $r$ trajectories.
 Together with one copy of the dictionary, these give
 \[
-  R=|H|+r(K+1)=O(N/L+rL)
+  R=|H|+r(2L+1)=O(N/L+rL)
 \]
 records.  Attach the trajectory number and within-trajectory position to
 each query.  Because $r\leq N$ and $L\leq N$, the record width and
@@ -3141,12 +3122,12 @@ $O(\log R+\log w)=O(n)$.  Repeated-state detection (\cref{lem:repeat}) is a
 sorting network, adjacent comparisons and a first-flag selection, so it
 has the same depth bounds as the lookup.
 
-\emph{Simulations.}  If $T<K=2L$, the circuit consists of $T$ copies of $F$
+\emph{Simulations.}  If $T<2L$, the circuit consists of $T$ copies of $F$
 in series, of depth at most $2Ld$.  Otherwise the computation has one
-sequential spine: the trajectory \cref{eq:prefix}, of depth $Kd$; then the
+sequential spine: the trajectory \cref{eq:prefix}, of depth $2Ld$; then the
 lookup and the selection of the checkpoint index $d$; then the second
-trajectory of length $K$, of depth $Kd$; then the selection of its entry
-$K-d$ and the final branch selection.  The repetition branch runs in
+trajectory of length $2L$, of depth $2Ld$; then the selection of its entry
+$2L-d$ and the final branch selection.  The repetition branch runs in
 parallel with the lookup and the second trajectory, and consists of
 repeated-state detection, the residue multiplexer, the division and a
 selection.  Summing along the spine gives depth
@@ -3220,8 +3201,8 @@ are encoded with $n+1$ bits, since a cycle may have length $N$.
 A circuit of size $O(B)$ computes $(\ell(x),c(x),\phi(x))$ for every $x$.
 \end{theorem}
 \begin{proof}
-Fix $L$ and use the checkpoint construction with $K=2L$.  Hardwire the
-three labels for each checkpoint.  If $F^d(x)=h$ for $d\leq K$, output
+Fix $L$ and use the checkpoint construction.  Hardwire the
+three labels for each checkpoint.  If $F^d(x)=h$ for $d\leq 2L$, output
 \[
  \ell(x)=\ell(h),\qquad c(x)=c(h),\qquad
  \phi(x)=(\phi(h)-d)\bmod\ell(h).
@@ -3238,7 +3219,7 @@ its equal-state run.  The states before $j$ are distinct, so
 $i=\mu(x)$ and $[i,j)$ consists of exactly one cycle traversal.
 Set $\ell=j-i$, and select the minimum state $c=x_p$ over $i\leq p<j$.
 Then $\phi(x)=(-p)\bmod\ell$.  Minimum selection and the interval mask
-cost $O(nK)$ gates, and word arithmetic costs $O(n^2)$ gates.
+cost $O(n2L)$ gates, and word arithmetic costs $O(n^2)$ gates.
 Sorting and lookup cost $O(n^3(L+N/L))$, while the prefix costs $O(Ls)$.
 Optimizing $L$ proves the claim.  Discarded branches use safe positive
 dummy moduli, as in the fixed-power construction.
@@ -3258,11 +3239,11 @@ with all iterates of $F$, so
 Indeed, equality is equivalent to $F^i(x)=R(F^i(x))$, which is exactly
 cyclicity.  The projection costs $O(B)$ gates by \cref{thm:main}.
 
-Fix a checkpoint parameter $L$ and set $K=2L$.  Retain the first $K+1$
+Fix a checkpoint parameter $L$.  Retain the first $2L+1$
 states of both trajectories and compare corresponding states.  If the
-states at position $K$ agree, select the first equality; its index is
-$\mu(x)$.  Otherwise $\mu(x)>K$, so the original prefix has no repetition
-and must meet a checkpoint $h=F^d(x)$ with $d<K$.  Every such hit is
+states at position $2L$ agree, select the first equality; its index is
+$\mu(x)$.  Otherwise $\mu(x)>2L$, so the original prefix has no repetition
+and must meet a checkpoint $h=F^d(x)$ with $d<2L$.  Every such hit is
 transient and satisfies $\mu(x)=d+\mu(h)$.
 
 Hardwire $\mu(h)$ with each checkpoint and resolve all prefix queries
@@ -3318,7 +3299,7 @@ The output may use a separate existence flag and $n$ time bits.
 \end{theorem}
 \begin{proof}
 Use a common parameter $L$ in the depth and cycle-label constructions.
-Write $K=2L$ and construct the forest of \cref{lem:checkpoint-forest}.
+Construct the forest of \cref{lem:checkpoint-forest}.
 Store a dictionary of the marked vertices $a\in J$, with their states,
 depths, and interval labels.  A second dictionary has one key
 $F^{d_a-1}(a)$ for each nonroot mark $a$, with the same payload for $a$.
@@ -3326,14 +3307,14 @@ These last-predecessor keys are distinct by disjointness of the segments.
 Both dictionaries have $O(N/L)$ records of $O(n)$ bits.
 
 Suppose first that $y$ is transient.  Generate the prefixes of $x$ and
-$y$ through time $K$.  If $y$ occurs in the prefix of $x$, accept.
+$y$ through time $2L$.  If $y$ occurs in the prefix of $x$, accept.
 Otherwise select any marked vertex $h$ in that prefix; if none exists,
 reject.  To select a candidate ancestor $a$, use $a=y$ if $y\in J$.
 Otherwise query the second dictionary on the prefix of $y$, retain only
 matches with $\mu(a)\geq\mu(y)$, and select any retained record.  Reject
 if there is no such record.  Finally accept exactly when
 \[
- y\in\{a,F(a),\ldots,F^K(a)\}
+ y\in\{a,F(a),\ldots,F^{2L}(a)\}
  \quad\hbox{and}\quad p(a)\leq p(h)\leq q(a).
 \]
 The first test uses a third short prefix.  It is essential for rejecting
@@ -3345,7 +3326,7 @@ suppose $x$ reaches a transient $y$ beyond its inspected prefix.
 That prefix cannot repeat and must contain a checkpoint.  Every selected
 mark $h$ precedes $y$, so $y\in S$.  If $y$ is unmarked, it lies in a
 unique compressed segment, whose last-predecessor key appears within
-$K$ steps of $y$.  Its lower endpoint passes the depth filter.
+$2L$ steps of $y$.  Its lower endpoint passes the depth filter.
 Moreover, every retained key has the same property: if
 $F^j(y)=F^{d_a-1}(a)$ and $\mu(a)\geq\mu(y)$, decreasing depth gives
 $j\leq d_a-1$.  Unique predecessors inside the segment then give
@@ -3958,7 +3939,7 @@ every $T$ witnessing the lower bound in item~3 has
 $2^{\Omega(n)}$ bits, exactly as in \cref{cor:exponent-length}.
 
 Everything in this subsection is nonuniform.  The checkpoint payloads
-$F_M^{T-K}(h)$ may take time proportional to $T$ to compute, and no
+$F_M^{T-2L}(h)$ may take time proportional to $T$ to compute, and no
 bound for a specific, efficiently described $T$ is obtained.
 
 \subsection{Synchronous and recurring queries}\label{sec:eventual-queries}
@@ -5246,7 +5227,7 @@ search from the cycles along reversed edges.
 
 Replacing \cref{lem:checkpoints} by this lemma in \cref{sec:fixed} changes
 only the constant in the size of the dictionary, so it gives the bound of
-\cref{thm:main} with the same $K=2L$.
+\cref{thm:main} with the same $L$.
 
 \begin{proposition}[Preprocessing time]\label[proposition]{prop:preprocessing}
 On a random-access machine with words of $\Theta(n)$ bits, given a circuit of
@@ -5259,23 +5240,23 @@ word operations, where $G=O(A+\sqrt{n^3NA})$ is the size of the output.
 \end{proposition}
 
 \begin{proof}
-If $T<K$ the circuit is $T$ copies of $F$.  Otherwise:
+If $T<2L$ the circuit is $T$ copies of $F$.  Otherwise:
 \begin{enumerate}
 \item Evaluate $F$ on all $N$ states, $O(Ns)$ operations, and compute $H$ by
   \cref{lem:residue-checkpoints}, $O(N)$.
-\item The payloads are $z_h=F^j(h)$ with the common exponent $j=T-K$.  Run a
+\item The payloads are $z_h=F^j(h)$ with the common exponent $j=T-2L$.  Run a
   depth-first search on the reversed forest from each cycle vertex,
   keeping the current root-to-vertex path on a stack.  At a vertex $h$ of
   depth $d_h>j$ the payload is the stack entry $j$ positions below the
   top.  At a vertex of depth $d_h\leq j$ attached to the cycle vertex $c$
   of a cycle of length $\ell$, stored as an array, the payload is the cycle
   vertex at position
-  $\mathrm{pos}(c)+\bigl((T\bmod\ell)-K-d_h\bigr)\bmod\ell$.  Cycle
+  $\mathrm{pos}(c)+\bigl((T\bmod\ell)-2L-d_h\bigr)\bmod\ell$.  Cycle
   vertices are handled by the same formula with $d_h=0$.  This takes
   $O(N)$ operations once $T\bmod\ell$ is known for every cycle length.
 \item The distinct cycle lengths sum to at most $N$, so there are at most
   $\sqrt{2N}$ of them.  The residue table \cref{eq:residue-table} needs
-  $T\bmod p$ for $p\leq K\leq2\ceil{\sqrt N}$.  Each reduction of $T$
+  $T\bmod p$ for $p\leq 2L\leq2\ceil{\sqrt N}$.  Each reduction of $T$
   modulo an $O(n)$-bit integer takes $O(\ceil{\log_2(T+2)/n})$ word
   operations by schoolbook division, so all residues take
   $O(\sqrt N\ceil{\log_2(T+2)/n})$ operations.
@@ -5604,11 +5585,11 @@ charged.  Randomness may be fixed by averaging, so we assume that both
 stages are deterministic.  A query to $q$ returns $f(q)$; only forward
 queries are allowed.
 
-The construction of \cref{sec:fixed} is such an algorithm.  With $K=2L$,
-the advice consists of the at most $N/L$ checkpoint records
+The construction of \cref{sec:fixed} is such an algorithm.  Its advice
+consists of the at most $N/L$ checkpoint records
 $(h,z_h)$ and the residue table \cref{eq:residue-table}, so
-$S=O((N/L+L)\log N)$.  The online stage walks $K$ steps, looks up the
-first checkpoint, and walks at most $K$ more steps, so $t\leq 4L$.  Hence,
+$S=O((N/L+L)\log N)$.  The online stage walks $2L$ steps, looks up the
+first checkpoint, and walks at most $2L$ more steps, so $t\leq 4L$.  Hence,
 for every map and every exponent,
 \begin{equation}\label{eq:bb-upper-perm}
   S\,t=O(N\log N)\qquad(t\leq\sqrt N).
@@ -6323,7 +6304,7 @@ sorts checkpoint and prefix records with tagged padding, then selects an
 adjacent equal-key pair witnessing either a checkpoint hit or a repeated
 state.  Batches use the full shared dictionary lookup of \cref{lem:lookup}.
 The repeated-state decoder adds the period to a hardwired residue until the
-index lies in the repeated interval; its $O(Kn^2)$ cost, with $K=2L$, fits
+index lies in the repeated interval; its $O(2Ln^2)$ cost fits
 the main budget.
 \item Cycle labels are computed after projecting by $F^{N!}$, which reaches
 the cycle and preserves its labels.  A short cyclic prefix either meets a
